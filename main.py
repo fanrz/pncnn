@@ -24,6 +24,7 @@ from utils.checkpoints import save_checkpoint
 from common.losses import get_loss_fn
 from utils.eval_uncertainty import eval_ause
 
+import BilateralLayer as bs
 
 def main():
     # Make some variable global
@@ -109,7 +110,7 @@ def main():
         train_loader, val_loader = create_dataloader(args, eval_mode=False)
 
 ############ NEW EXP MODE ############
-    else:  # New Exp
+    else:  # New Exp, train processing
         print('\n==> Starting a new experiment "{}" \n'.format(args.exp))
 
         # Check if experiment exists
@@ -234,6 +235,7 @@ def main():
             # TODO: Do you really need to save the best out_image ??
 
 
+
 ############ TRAINING FUNCTION ############
 def train_epoch(dataloader, model, optimizer, objective, epoch):
     """
@@ -269,10 +271,14 @@ def train_epoch(dataloader, model, optimizer, objective, epoch):
 
             optimizer.zero_grad()  # Clear the gradients
 
+            
             # Forward pass
             out = model(input)
 
-            loss = objective(out, target)  # Compute the loss
+            outBsPred = bs.BilateralLayer().solve(input, out)
+
+
+            loss = objective(outBsPred, target)  # Compute the loss
 
             # Backward pass
             loss.backward()

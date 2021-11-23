@@ -53,6 +53,7 @@ class KittiErrorMetrics(ErrorMetrics):
         self.metrics['delta3'] = 0.
 
     def evaluate(self, pred, target):
+        
         pred *= self.norm_factor / 256  # In meters now
         target *= self.norm_factor / 256
 
