@@ -24,7 +24,7 @@ def BilateralFunction(image, pred, grid_params_arr, bs_params_arr ):
     output = np.zeros((batch_size, height, width, channel_num), np.float32)
     confidence = np.ones((batch_size, 1, height, width))
 
-    image_np = image.numpy().swapaxes(1, 2).swapaxes(2, 3)
+    image_np = image.cpu().numpy().swapaxes(1, 2).swapaxes(2, 3)
     pred_np = pred.numpy().swapaxes(1, 2).swapaxes(2, 3)
     conf_np = confidence.squeeze(1)
 
