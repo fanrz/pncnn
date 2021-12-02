@@ -76,7 +76,7 @@ class KittiDepthDataset(Dataset):
                 depth_path = self.depth[item]
                 tmp = depth_path.split('velodyne_raw')
                 rgb_path = tmp[0] + 'image' + tmp[1]
-                rgb = Image.open(rgb_path)
+                rgb = n(rgb_path)
 
             if self.rgb2gray:
                 t = transforms.Grayscale(1)
