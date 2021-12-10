@@ -271,14 +271,17 @@ def train_epoch(dataloader, model, optimizer, objective, epoch):
 
             optimizer.zero_grad()  # Clear the gradients
 
-            
             # Forward pass
-            out = model(input)
+            #print('in the main func, the size of input is',input.shape)
+            out, conf = model(input, epoch)
 
-            outBsPred = bs.BilateralLayer().solve(input, out)
+    #        print('target max is ', target.max())
+    #        print('out max is ', out.max())
+    #        print('target mean is ', target.mean())
+    #        print('out mean is ', out.mean())
 
+            loss = objective(out, target, conf)  # Compute the loss
 
-            loss = objective(outBsPred, target)  # Compute the loss
 
             # Backward pass
             loss.backward()

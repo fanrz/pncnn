@@ -29,7 +29,7 @@ class KittiOutputImageSaver(OutputImageSaver):
         super(KittiOutputImageSaver, self).__init__(exp_dir, args, epoch)
 
     # TODO: Evaluate on different sets or different dataset vkitti
-    def update(self, i, out_img, input, pred, target):
+    def update(self, i, out_img, input, pred, conf, target):
 
         d_out = pred[:, :1, :, :] * self.args.norm_factor
 
@@ -40,14 +40,14 @@ class KittiOutputImageSaver(OutputImageSaver):
             cout = None
             cin = None
 
-        save_tensor_to_images(colored_depthmap_tensor(d_out), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
-                              self.args.dataset + '_' + self.args.val_ds + '_output'))
+        save_depth_tensor_to_images(colored_depthmap_tensor(d_out), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' + self.args.dataset + '_' + self.args.val_ds + '_output'))
+        save_conf_tensor_to_images(colored_depthmap_tensor(conf), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' + self.args.dataset + '_' + self.args.val_ds + '_conf'))
         if cout is not None:
-            save_tensor_to_images(colored_depthmap_tensor(cout), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
+            save_depth_tensor_to_images(colored_depthmap_tensor(cout), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                  self.args.dataset + '_' + self.args.val_ds + '_cout'))
 
         if cin is not None:
-            save_tensor_to_images(colored_depthmap_tensor(cin), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
+            save_depth_tensor_to_images(colored_depthmap_tensor(cin), i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                   self.args.dataset + '_' + self.args.val_ds + '_cin'))
         return pred
 
@@ -72,22 +72,22 @@ class NyuOutputImageSaver(OutputImageSaver):
                 cout = None
                 cin = None
 
-            save_tensor_to_images(target*65535/10, i,
+            save_depth_tensor_to_images(target*65535/10, i,
                                  os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                               self.args.dataset + '_' + self.args.val_ds + '_target'))
 
-            save_tensor_to_images(d_out*65535/10, i,
+            save_depth_tensor_to_images(d_out*65535/10, i,
                                   os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                                self.args.dataset + '_' + self.args.val_ds + '_output'))
             if cout is not None:
                 # cout[:,:,0:10,:] = 0 # Remove this weird artifact at the top
-                save_tensor_to_images(cout * 65535, i,
+                save_depth_tensor_to_images(cout * 65535, i,
                                       os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                                    self.args.dataset + '_' + self.args.val_ds + '_cout'))
 
             if cin is not None:
                 cin[:, :, 0:10, :] = 0  # Remove this weird artifact at the top
-                save_tensor_to_images(cin * 65535, i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
+                save_depth_tensor_to_images(cin * 65535, i, os.path.join(self.exp_dir, 'epoch_' + str(self.epoch) + '_' +
                                                                    self.args.dataset + '_' + self.args.val_ds + '_cin'))
 
             out_image = None
@@ -177,7 +177,7 @@ def save_image(img_merge, filename):
     img_merge.save(filename)
 
 
-def save_tensor_to_images(t, idx, save_to_path):
+def save_depth_tensor_to_images(t, idx, save_to_path):
     if os.path.exists(save_to_path) == False:
         os.mkdir(save_to_path)
     batch = t.shape[0]
@@ -188,5 +188,17 @@ def save_tensor_to_images(t, idx, save_to_path):
         #print('==> Writing {}'.format(path))
         cv2.imwrite(path, im,
                     [cv2.IMWRITE_PNG_COMPRESSION, 4])
+
+def save_conf_tensor_to_images(t, idx, save_to_path):
+    if os.path.exists(save_to_path) == False:
+        os.mkdir(save_to_path)
+    batch = t.shape[0]
+    for i in range(batch):
+        im = t[i, :, :, :].detach().data.cpu().numpy()
+        im = np.transpose(im, (1, 2, 0)).astype(np.uint8)
+        path = os.path.join(save_to_path, str(idx*batch+i).zfill(5) + '.png')
+        #print('==> Writing {}'.format(path))
+        cv2.imwrite(path, im,
+                    [cv2.IMWRITE_PNG_COMPRESSION, 4])                    
 
 

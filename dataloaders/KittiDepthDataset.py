@@ -13,6 +13,7 @@ import numpy as np
 import glob
 import os
 from torchvision import transforms
+from skimage.io import imread
 
 
 class KittiDepthDataset(Dataset):
