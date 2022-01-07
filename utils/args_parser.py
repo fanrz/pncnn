@@ -12,7 +12,7 @@ import json
 from common.losses import get_loss_list
  
 # Lists for args which have mandatory selections 
-datasets_list = ['nyudepthv2', 'kitti_depth', 'vkitti', 'kitti_odo', 'flat']
+datasets_list = ['kitti_depth']
 modality_list=['rgb','rgbd','d']
 losses_list = get_loss_list()
 optimizers_list = ['sgd', 'adam']
@@ -86,19 +86,6 @@ def args_parser():
     parser.add_argument('--data_aug', default=False, type=bool,
                         help='Perform data augmentation or not. (default: False)')
 
-########### NYUDepthv2 arguments ###########
-    parser.add_argument('-s', '--num-samples', default=200, type=int, metavar='N',
-                        help='number of sparse depth samples (default: 0)')
-    parser.add_argument('--max-depth', default=-1.0, type=float, metavar='D',
-                        help='cut-off depth of sparsifier, negative values means infinity (default: inf [m])')
-    from dataloaders.nyu_transforms import UniformSampling, SimulatedStereo
-    sparsifier_names = [x.name for x in [UniformSampling, SimulatedStereo]]
-    parser.add_argument('--sparsifier', metavar='SPARSIFIER', default=UniformSampling.name, choices=sparsifier_names,
-                        help='sparsifier: ' + ' | '.join(sparsifier_names) + ' (default: ' + UniformSampling.name + ')')
-
-    parser.add_argument('--shift', default=None, type=float, help='Translation Perturbation in cm. (default: None')
-    parser.add_argument('--rotate', default=None, type=float, help='Rotation Perturbation in cm. (default: None')
-
 ########### Training arguments ###########
     parser.add_argument('--epochs', default=20, type=int,
                         help='Total number of epochs to run (default: 30)')
@@ -126,6 +113,13 @@ def args_parser():
     parser.add_argument('--loss', '-l', default='l1', choices=losses_list,
                         help='Loss function: ' + ' | '.join(losses_list) + ' (default: l1)')
 
+    # "adam_eps": 1e-3,
+    # "end_learning_rate": -1,
+
+    parser.add_argument('--adam_eps', '--ae', default=0, type=float)
+    
+    parser.add_argument('--end_learning_rate', '--elr',  type=float)
+    
 ########### Logging ###########
     parser.add_argument('--print-freq',  default=10, type=int,
                          help='Printing evaluation criterion frequency (default: 10)')

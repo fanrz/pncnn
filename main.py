@@ -144,7 +144,8 @@ def main():
                             weight_decay=args.weight_decay)
         elif args.optimizer.lower() == 'adam':
             optimizer = Adam(parameters, lr=args.lr, weight_decay=args.weight_decay, amsgrad=True)
-
+        elif args.optimizer.lower() == 'adam':
+            
 ############ IF RESUME/NEW EXP ############
     # Error metrics that are set to the worst
     best_result = create_error_metric(args)
