@@ -262,54 +262,55 @@ def train_epoch(dataloader, model, optimizer, objective, epoch):
 
     start = time.time()
     for i, (input, target) in enumerate(dataloader):
-            input, target = input.to(device), target.to(device)
+        
+        input, target = input.to(device), target.to(device)
 
-            torch.cuda.synchronize()  # Wait for all kernels to finish
+        torch.cuda.synchronize()  # Wait for all kernels to finish
 
-            data_time = time.time() - start
+        data_time = time.time() - start
 
-            start = time.time()
+        start = time.time()
 
-            optimizer.zero_grad()  # Clear the gradients
+        optimizer.zero_grad()  # Clear the gradients
 
-            # Forward pass
-            #print('in the main func, the size of input is',input.shape)
-            out, conf = model(input, epoch)
+        # Forward pass
+        #print('in the main func, the size of input is',input.shape)
+        out, conf = model(input, epoch)
 
-    #        print('target max is ', target.max())
-    #        print('out max is ', out.max())
-    #        print('target mean is ', target.mean())
-    #        print('out mean is ', out.mean())
+#        print('target max is ', target.max())
+#        print('out max is ', out.max())
+#        print('target mean is ', target.mean())
+#        print('out mean is ', out.mean())
 
-            loss = objective(out, target, conf)  # Compute the loss
+        loss = objective(out, target, conf)  # Compute the loss
 
 
-            # Backward pass
-            loss.backward()
+        # Backward pass
+        loss.backward()
 
-            optimizer.step()  # Update the parameters
+        optimizer.step()  # Update the parameters
 
-            gpu_time = time.time() - start
+        gpu_time = time.time() - start
 
-            # Calculate Error metrics
-            err = create_error_metric(args)
-            err.evaluate(out[:, :1, :, :].data, target.data)
-            err_avg.update(err.get_results(), loss.item(), gpu_time, data_time, input.size(0))
+        # Calculate Error metrics
+        err = create_error_metric(args)
+        err.evaluate(out[:, :1, :, :].data, target.data)
+        err_avg.update(err.get_results(), loss.item(), gpu_time, data_time, input.size(0))
 
-            if (i + 1) % args.print_freq == 0 or i == len(dataloader)-1:
-                print('[Train] Epoch ({}) [{}/{}]: '.format(
-                    epoch, i+1, len(dataloader)),  end='')
-                print(err_avg)
+        if (i + 1) % args.print_freq == 0 or i == len(dataloader)-1:
+            print('[Train] Epoch ({}) [{}/{}]: '.format(
+                epoch, i+1, len(dataloader)),  end='')
+            print(err_avg)
 
-            # Log to Tensorboard if enabled
-            if tb_writer is not None:
-                if (i + 1) % tb_freq == 0:
-                    avg_meter = err_avg.get_avg()
-                    tb_writer.add_scalar('Loss/train', avg_meter.loss, epoch * len(dataloader) + i)
-                    tb_writer.add_scalar('MAE/train', avg_meter.metrics['mae'], epoch * len(dataloader) + i)
-                    tb_writer.add_scalar('RMSE/train', avg_meter.metrics['rmse'], epoch * len(dataloader) + i)
+        # Log to Tensorboard if enabled
+        if tb_writer is not None:
+            if (i + 1) % tb_freq == 0:
+                avg_meter = err_avg.get_avg()
+                tb_writer.add_scalar('Loss/train', avg_meter.loss, epoch * len(dataloader) + i)
+                tb_writer.add_scalar('MAE/train', avg_meter.metrics['mae'], epoch * len(dataloader) + i)
+                tb_writer.add_scalar('RMSE/train', avg_meter.metrics['rmse'], epoch * len(dataloader) + i)
 
-            start = time.time()  # Start counting again for the next iteration
+        start = time.time()  # Start counting again for the next iteration
 
     return err_avg
 
